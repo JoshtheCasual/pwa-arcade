@@ -101,6 +101,7 @@
         .category-icon.arcade { background: linear-gradient(135deg, #fa709a, #fee140); }
         .category-icon.card { background: linear-gradient(135deg, #a8edea, #fed6e3); }
         .category-icon.classic { background: linear-gradient(135deg, #d299c2, #fef9d7); }
+        .category-icon.party { background: linear-gradient(135deg, #f472b6, #c026d3); }
         .category-title {
             flex: 1;
             font-family: 'Fredoka', sans-serif;
@@ -184,6 +185,7 @@
         .game-icon.solitaire { background: linear-gradient(135deg, #059669, #10B981); }
         .game-icon.blackjack { background: linear-gradient(135deg, #DC2626, #B91C1C); }
         .game-icon.simon { background: linear-gradient(135deg, #FBBF24, #F59E0B); }
+        .game-icon.headsup { background: linear-gradient(135deg, #f472b6, #c026d3); }
         
         .game-menu-container {
             padding: 16px;
@@ -356,6 +358,22 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Party Games -->
+            <div class="category-section">
+                <div class="category-header" data-category="party">
+                    <div class="category-icon party">🎉</div>
+                    <span class="category-title">Party</span>
+                    <span class="category-count">1 game</span>
+                    <span class="material-icons-round category-chevron">expand_more</span>
+                </div>
+                <div class="category-games">
+                    <div class="game-card-mini" data-game="headsup">
+                        <div class="game-icon headsup"><span class="material-icons-round">person</span></div>
+                        <h3>Heads Up</h3>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Game Area -->
@@ -391,6 +409,7 @@
     <script src="js/games/solitaire.js"></script>
     <script src="js/games/blackjack.js"></script>
     <script src="js/games/simon.js"></script>
+    <script src="js/games/headsup.js"></script>
     <script src="js/app.js"></script>
     
     <script>

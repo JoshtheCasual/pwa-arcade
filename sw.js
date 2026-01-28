@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pwa-arcade-v2';
+const CACHE_NAME = 'pwa-arcade-v3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -29,6 +29,8 @@ const ASSETS = [
   '/js/games/blackjack.js',
   // Classic games
   '/js/games/simon.js',
+  // Party games
+  '/js/games/headsup.js',
   // Assets
   '/manifest.json',
   '/icons/icon.svg',

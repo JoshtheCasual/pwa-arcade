@@ -39,6 +39,9 @@ class GameArcade {
         // Classic
         if (typeof TicTacToe !== 'undefined') this.games.tictactoe = new TicTacToe();
         if (typeof Simon !== 'undefined') this.games.simon = new Simon();
+        
+        // Party
+        if (typeof HeadsUp !== 'undefined') this.games.headsup = new HeadsUp();
     }
     
     init() {
@@ -47,8 +50,9 @@ class GameArcade {
         document.documentElement.setAttribute('data-theme', savedTheme);
         this.updateThemeIcon(savedTheme);
         
-        // Load collapsed state
-        const collapsedCategories = JSON.parse(localStorage.getItem('arcade-collapsed') || '[]');
+        // Load collapsed state - default all collapsed on first visit
+        const defaultCollapsed = ['strategy', 'puzzle', 'word', 'arcade', 'card', 'classic', 'party'];
+        const collapsedCategories = JSON.parse(localStorage.getItem('arcade-collapsed') || JSON.stringify(defaultCollapsed));
         
         document.getElementById('themeBtn').addEventListener('click', () => this.toggleTheme());
         document.getElementById('backBtn').addEventListener('click', () => this.showMenu());
