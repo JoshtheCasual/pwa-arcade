@@ -118,15 +118,16 @@ class Battleship {
                 .board-section h3 { margin-bottom: 8px; font-size: 14px; }
                 .battleship-board {
                     display: grid;
-                    grid-template-columns: repeat(10, 1fr);
+                    grid-template-columns: repeat(10, 28px);
                     gap: 2px;
                     background: #0D47A1;
                     padding: 4px;
                     border-radius: 4px;
-                    max-width: 180px;
+                    width: fit-content;
                 }
                 .bs-cell {
-                    aspect-ratio: 1;
+                    width: 28px;
+                    height: 28px;
                     background: #1565C0;
                     cursor: pointer;
                     border-radius: 2px;

@@ -139,12 +139,13 @@ class Minesweeper {
                 }
                 .ms-grid {
                     display: grid;
-                    grid-template-columns: repeat(${this.size}, 1fr);
+                    grid-template-columns: repeat(${this.size}, 32px);
                     gap: 2px;
                     background: #999;
                     padding: 4px;
                     border-radius: 4px;
-                    max-width: 320px;
+                    width: fit-content;
+                    margin: 0 auto;
                 }
                 .ms-cell {
                     width: 32px;

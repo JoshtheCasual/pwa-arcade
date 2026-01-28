@@ -100,17 +100,18 @@ class Puzzle2048 {
             style.textContent = `
                 .p2048-board {
                     display: grid;
-                    grid-template-columns: repeat(4, 1fr);
+                    grid-template-columns: repeat(4, 70px);
                     gap: 8px;
                     background: #bbada0;
                     padding: 10px;
                     border-radius: 6px;
-                    max-width: 320px;
+                    width: fit-content;
                     margin: 0 auto;
                     position: relative;
                 }
                 .p2048-cell {
-                    aspect-ratio: 1;
+                    width: 70px;
+                    height: 70px;
                     display: flex;
                     align-items: center;
                     justify-content: center;

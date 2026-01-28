@@ -138,20 +138,22 @@ class Chess {
             style.textContent = `
                 .chess-board {
                     display: grid;
-                    grid-template-columns: repeat(8, 1fr);
+                    grid-template-columns: repeat(8, 40px);
                     gap: 0;
-                    max-width: 350px;
+                    width: fit-content;
                     margin: 0 auto;
                     border: 3px solid #5D4037;
                     border-radius: 4px;
                 }
                 .chess-cell {
-                    aspect-ratio: 1;
+                    width: 40px;
+                    height: 40px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
                     font-size: 28px;
+                    position: relative;
                 }
                 .chess-cell.light { background: #F5DEB3; }
                 .chess-cell.dark { background: #8B7355; }

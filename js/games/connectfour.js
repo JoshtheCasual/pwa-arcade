@@ -85,16 +85,17 @@ class ConnectFour {
             style.textContent = `
                 .connect4-board {
                     display: grid;
-                    grid-template-columns: repeat(7, 1fr);
+                    grid-template-columns: repeat(7, 44px);
                     gap: 4px;
                     background: #1565C0;
                     padding: 10px;
                     border-radius: 10px;
-                    max-width: 350px;
+                    width: fit-content;
                     margin: 0 auto;
                 }
                 .c4-cell {
-                    aspect-ratio: 1;
+                    width: 44px;
+                    height: 44px;
                     border-radius: 50%;
                     background: #0D47A1;
                     cursor: pointer;

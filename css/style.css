@@ -440,12 +440,14 @@ body::after {
 /* Checkers */
 .checkers-board {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
+    grid-template-columns: repeat(8, 38px);
     padding: 12px;
     background: var(--gradient-card);
     border-radius: 20px;
     box-shadow: 0 12px 32px var(--shadow-soft);
     gap: 2px;
+    width: fit-content;
+    margin: 0 auto;
 }
 
 .checkers-cell {
