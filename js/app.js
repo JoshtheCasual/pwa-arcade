@@ -42,6 +42,9 @@ class GameArcade {
         
         // Party
         if (typeof HeadsUp !== 'undefined') this.games.headsup = new HeadsUp();
+        if (typeof Trivia !== 'undefined') this.games.trivia = new Trivia();
+        if (typeof Drawl !== 'undefined') this.games.drawl = new Drawl();
+        if (typeof Telephone !== 'undefined') this.games.telephone = new Telephone();
     }
     
     init() {
