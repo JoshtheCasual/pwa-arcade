@@ -7,9 +7,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Arcade">
     <meta name="theme-color" content="#FFB5C5">
-    <meta name="description" content="Classic games: Tic Tac Toe, Checkers, Go, Memory Match">
+    <meta name="description" content="Classic games: Strategy, Puzzle, Word, Arcade, Card games and more!">
     
-    <title>🎮 Game Arcade</title>
+    <title>🎮 PWA Arcade</title>
     
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
@@ -37,6 +37,9 @@
             z-index: 9999;
             transition: opacity 0.5s, visibility 0.5s;
         }
+        [data-theme="dark"] .splash {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
         .splash.hidden {
             opacity: 0;
             visibility: hidden;
@@ -59,13 +62,141 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-15px); }
         }
+        
+        /* Category styles */
+        .category-section {
+            margin-bottom: 24px;
+        }
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+        .category-header:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        .category-header.collapsed + .category-games {
+            display: none;
+        }
+        .category-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .category-icon.strategy { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .category-icon.puzzle { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .category-icon.word { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .category-icon.arcade { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .category-icon.card { background: linear-gradient(135deg, #a8edea, #fed6e3); }
+        .category-icon.classic { background: linear-gradient(135deg, #d299c2, #fef9d7); }
+        .category-title {
+            flex: 1;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .category-count {
+            background: var(--bg-secondary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .category-chevron {
+            color: var(--text-secondary);
+            transition: transform 0.3s ease;
+        }
+        .category-header.collapsed .category-chevron {
+            transform: rotate(-90deg);
+        }
+        .category-games {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            padding: 0 8px;
+        }
+        .game-card-mini {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: var(--shadow);
+        }
+        .game-card-mini:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: var(--shadow-lg);
+        }
+        .game-card-mini:active {
+            transform: scale(0.98);
+        }
+        .game-card-mini .game-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 12px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .game-card-mini .game-icon .material-icons-round {
+            font-size: 28px;
+            color: white;
+        }
+        .game-card-mini h3 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        /* Game icon colors */
+        .game-icon.tictactoe { background: linear-gradient(135deg, #FF6B6B, #FF8E8E); }
+        .game-icon.checkers { background: linear-gradient(135deg, #4ECDC4, #44A08D); }
+        .game-icon.go { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .game-icon.memory { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .game-icon.connectfour { background: linear-gradient(135deg, #FFD93D, #FF6B6B); }
+        .game-icon.reversi { background: linear-gradient(135deg, #6B8DD6, #8E37D7); }
+        .game-icon.battleship { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .game-icon.chess { background: linear-gradient(135deg, #434343, #000000); }
+        .game-icon.minesweeper { background: linear-gradient(135deg, #c0c0c0, #808080); }
+        .game-icon.puzzle2048 { background: linear-gradient(135deg, #EDB879, #F7CA6B); }
+        .game-icon.wordle { background: linear-gradient(135deg, #6AAA64, #C9B458); }
+        .game-icon.hangman { background: linear-gradient(135deg, #8B5CF6, #EC4899); }
+        .game-icon.snake { background: linear-gradient(135deg, #22C55E, #16A34A); }
+        .game-icon.breakout { background: linear-gradient(135deg, #F43F5E, #FB923C); }
+        .game-icon.tetris { background: linear-gradient(135deg, #8B5CF6, #3B82F6); }
+        .game-icon.solitaire { background: linear-gradient(135deg, #059669, #10B981); }
+        .game-icon.blackjack { background: linear-gradient(135deg, #DC2626, #B91C1C); }
+        .game-icon.simon { background: linear-gradient(135deg, #FBBF24, #F59E0B); }
+        
+        .game-menu-container {
+            padding: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
     <!-- Splash Screen -->
     <div class="splash" id="splash">
         <img src="icons/icon.svg" alt="" class="splash-icon">
-        <div class="splash-title">Game Arcade</div>
+        <div class="splash-title">PWA Arcade</div>
     </div>
 
     <div class="app-container">
@@ -74,48 +205,155 @@
             <button class="icon-btn back-btn" id="backBtn" style="display: none;">
                 <span class="material-icons-round">arrow_back_ios_new</span>
             </button>
-            <h1 class="app-title" id="appTitle">Game Arcade</h1>
+            <h1 class="app-title" id="appTitle">PWA Arcade</h1>
             <button class="icon-btn" id="themeBtn">
                 <span class="material-icons-round">dark_mode</span>
             </button>
         </header>
 
-        <!-- Game Selection -->
-        <div class="game-menu" id="gameMenu">
-            <div class="game-card" data-game="tictactoe">
-                <div class="game-icon">
-                    <span class="material-icons-round">grid_3x3</span>
+        <!-- Game Selection with Categories -->
+        <div class="game-menu-container" id="gameMenu">
+            <!-- Strategy Games -->
+            <div class="category-section">
+                <div class="category-header" data-category="strategy">
+                    <div class="category-icon strategy">♟️</div>
+                    <span class="category-title">Strategy</span>
+                    <span class="category-count">6 games</span>
+                    <span class="material-icons-round category-chevron">expand_more</span>
                 </div>
-                <div class="game-info">
-                    <h2>Tic Tac Toe</h2>
-                    <p>Classic X's and O's</p>
+                <div class="category-games">
+                    <div class="game-card-mini" data-game="checkers">
+                        <div class="game-icon checkers"><span class="material-icons-round">radio_button_checked</span></div>
+                        <h3>Checkers</h3>
+                    </div>
+                    <div class="game-card-mini" data-game="go">
+                        <div class="game-icon go"><span class="material-icons-round">blur_on</span></div>
+                        <h3>Go</h3>
+                    </div>
+                    <div class="game-card-mini" data-game="chess">
+                        <div class="game-icon chess"><span class="material-icons-round">dashboard</span></div>
+                        <h3>Chess</h3>
+                    </div>
+                    <div class="game-card-mini" data-game="connectfour">
+                        <div class="game-icon connectfour"><span class="material-icons-round">view_week</span></div>
+                        <h3>Connect 4</h3>
+                    </div>
+                    <div class="game-card-mini" data-game="reversi">
+                        <div class="game-icon reversi"><span class="material-icons-round">contrast</span></div>
+                        <h3>Reversi</h3>
+                    </div>
+                    <div class="game-card-mini" data-game="battleship">
+                        <div class="game-icon battleship"><span class="material-icons-round">sailing</span></div>
+                        <h3>Battleship</h3>
+                    </div>
                 </div>
             </div>
-            <div class="game-card" data-game="checkers">
-                <div class="game-icon">
-                    <span class="material-icons-round">radio_button_checked</span>
+
+            <!-- Puzzle Games -->
+            <div class="category-section">
+                <div class="category-header" data-category="puzzle">
+                    <div class="category-icon puzzle">🧩</div>
+                    <span class="category-title">Puzzle</span>
+                    <span class="category-count">3 games</span>
+                    <span class="material-icons-round category-chevron">expand_more</span>
                 </div>
-                <div class="game-info">
-                    <h2>Checkers</h2>
-                    <p>Jump to victory!</p>
+                <div class="category-games">
+                    <div class="game-card-mini" data-game="memory">
+                        <div class="game-icon memory"><span class="material-icons-round">style</span></div>
+                        <h3>Memory</h3>
+                    </div>
+                    <div class="game-card-mini" data-game="puzzle2048">
+                        <div class="game-icon puzzle2048"><span class="material-icons-round">grid_view</span></div>
+                        <h3>2048</h3>
+                    </div>
+                    <div class="game-card-mini" data-game="minesweeper">
+                        <div class="game-icon minesweeper"><span class="material-icons-round">flag</span></div>
+                        <h3>Minesweeper</h3>
+                    </div>
                 </div>
             </div>
-            <div class="game-card" data-game="go">
-                <div class="game-icon">
-                    <span class="material-icons-round">blur_on</span>
+
+            <!-- Word Games -->
+            <div class="category-section">
+                <div class="category-header" data-category="word">
+                    <div class="category-icon word">📝</div>
+                    <span class="category-title">Word</span>
+                    <span class="category-count">2 games</span>
+                    <span class="material-icons-round category-chevron">expand_more</span>
                 </div>
-                <div class="game-info">
-                    <h2>Go</h2>
-                    <p>Capture territory</p>
+                <div class="category-games">
+                    <div class="game-card-mini" data-game="wordle">
+                        <div class="game-icon wordle"><span class="material-icons-round">abc</span></div>
+                        <h3>Wordle</h3>
+                    </div>
+                    <div class="game-card-mini" data-game="hangman">
+                        <div class="game-icon hangman"><span class="material-icons-round">person</span></div>
+                        <h3>Hangman</h3>
+                    </div>
                 </div>
             </div>
-            <div class="game-card" data-game="memory">
-                <div class="game-icon">
-                    <span class="material-icons-round">style</span>
+
+            <!-- Arcade Games -->
+            <div class="category-section">
+                <div class="category-header" data-category="arcade">
+                    <div class="category-icon arcade">🕹️</div>
+                    <span class="category-title">Arcade</span>
+                    <span class="category-count">3 games</span>
+                    <span class="material-icons-round category-chevron">expand_more</span>
                 </div>
-                <div class="game-info">
-                    <h2>Memory Match</h2>
-                    <p>Find the pairs!</p>
+                <div class="category-games">
+                    <div class="game-card-mini" data-game="snake">
+                        <div class="game-icon snake"><span class="material-icons-round">pest_control</span></div>
+                        <h3>Snake</h3>
+                    </div>
+                    <div class="game-card-mini" data-game="breakout">
+                        <div class="game-icon breakout"><span class="material-icons-round">sports_tennis</span></div>
+                        <h3>Breakout</h3>
+                    </div>
+                    <div class="game-card-mini" data-game="tetris">
+                        <div class="game-icon tetris"><span class="material-icons-round">view_comfy_alt</span></div>
+                        <h3>Tetris</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Games -->
+            <div class="category-section">
+                <div class="category-header" data-category="card">
+                    <div class="category-icon card">🃏</div>
+                    <span class="category-title">Card</span>
+                    <span class="category-count">2 games</span>
+                    <span class="material-icons-round category-chevron">expand_more</span>
+                </div>
+                <div class="category-games">
+                    <div class="game-card-mini" data-game="solitaire">
+                        <div class="game-icon solitaire"><span class="material-icons-round">layers</span></div>
+                        <h3>Solitaire</h3>
+                    </div>
+                    <div class="game-card-mini" data-game="blackjack">
+                        <div class="game-icon blackjack"><span class="material-icons-round">casino</span></div>
+                        <h3>Blackjack</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Classic Games -->
+            <div class="category-section">
+                <div class="category-header" data-category="classic">
+                    <div class="category-icon classic">⭐</div>
+                    <span class="category-title">Classic</span>
+                    <span class="category-count">2 games</span>
+                    <span class="material-icons-round category-chevron">expand_more</span>
+                </div>
+                <div class="category-games">
+                    <div class="game-card-mini" data-game="tictactoe">
+                        <div class="game-icon tictactoe"><span class="material-icons-round">grid_3x3</span></div>
+                        <h3>Tic Tac Toe</h3>
+                    </div>
+                    <div class="game-card-mini" data-game="simon">
+                        <div class="game-icon simon"><span class="material-icons-round">looks</span></div>
+                        <h3>Simon</h3>
+                    </div>
                 </div>
             </div>
         </div>
@@ -131,10 +369,28 @@
         <div class="snackbar" id="snackbar"></div>
     </div>
 
+    <!-- External Libraries -->
+    <script src="https://unpkg.com/js-chess-engine/lib/js-chess-engine.js"></script>
+
+    <!-- Game Scripts -->
     <script src="js/games/tictactoe.js"></script>
     <script src="js/games/checkers.js"></script>
     <script src="js/games/go.js"></script>
     <script src="js/games/memory.js"></script>
+    <script src="js/games/chess.js"></script>
+    <script src="js/games/connectfour.js"></script>
+    <script src="js/games/reversi.js"></script>
+    <script src="js/games/battleship.js"></script>
+    <script src="js/games/minesweeper.js"></script>
+    <script src="js/games/puzzle2048.js"></script>
+    <script src="js/games/wordle.js"></script>
+    <script src="js/games/hangman.js"></script>
+    <script src="js/games/snake.js"></script>
+    <script src="js/games/breakout.js"></script>
+    <script src="js/games/tetris.js"></script>
+    <script src="js/games/solitaire.js"></script>
+    <script src="js/games/blackjack.js"></script>
+    <script src="js/games/simon.js"></script>
     <script src="js/app.js"></script>
     
     <script>
