@@ -88,16 +88,17 @@ class Reversi {
             style.textContent = `
                 .reversi-board {
                     display: grid;
-                    grid-template-columns: repeat(8, 1fr);
+                    grid-template-columns: repeat(8, 40px);
                     gap: 2px;
                     background: #1B5E20;
                     padding: 8px;
                     border-radius: 8px;
-                    max-width: 350px;
+                    width: fit-content;
                     margin: 0 auto;
                 }
                 .reversi-cell {
-                    aspect-ratio: 1;
+                    width: 40px;
+                    height: 40px;
                     background: #2E7D32;
                     display: flex;
                     align-items: center;

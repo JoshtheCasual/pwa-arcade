@@ -1,308 +1,377 @@
-// Blackjack - Card game
+// Blackjack - Card game vs dealer
 class Blackjack {
     constructor() {
         this.name = 'Blackjack';
         this.deck = [];
         this.playerHand = [];
         this.dealerHand = [];
-        this.playerScore = 0;
-        this.dealerScore = 0;
-        this.chips = parseInt(localStorage.getItem('blackjack-chips') || '1000');
-        this.bet = 50;
-        this.gamePhase = 'betting'; // betting, playing, dealerTurn, ended
-        this.suits = ['♠', '♥', '♦', '♣'];
-        this.values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        this.playerChips = parseInt(localStorage.getItem('blackjack-chips') || '1000');
+        this.bet = 0;
+        this.phase = 'betting'; // betting, playing, dealer, ended
+        this.result = '';
     }
-    
+
     init(gameArea, statusArea, controlsArea) {
         this.gameArea = gameArea;
         this.statusArea = statusArea;
         this.controlsArea = controlsArea;
-        this.render();
+        this.reset();
     }
-    
+
     createDeck() {
+        const suits = ['♠', '♥', '♦', '♣'];
+        const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
         this.deck = [];
-        for (const suit of this.suits) {
-            for (const value of this.values) {
-                this.deck.push({suit, value});
+        
+        // Use 6 decks like casinos
+        for (let d = 0; d < 6; d++) {
+            for (const suit of suits) {
+                for (let i = 0; i < values.length; i++) {
+                    this.deck.push({
+                        suit,
+                        value: values[i],
+                        numValue: i === 0 ? 11 : Math.min(i + 1, 10),
+                        color: suit === '♥' || suit === '♦' ? 'red' : 'black'
+                    });
+                }
             }
         }
-        // Shuffle
+        this.shuffle();
+    }
+
+    shuffle() {
         for (let i = this.deck.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
         }
     }
-    
-    drawCard() {
-        return this.deck.pop();
-    }
-    
-    calculateScore(hand) {
-        let score = 0;
-        let aces = 0;
-        
-        for (const card of hand) {
-            if (card.value === 'A') {
-                aces++;
-                score += 11;
-            } else if (['K', 'Q', 'J'].includes(card.value)) {
-                score += 10;
-            } else {
-                score += parseInt(card.value);
-            }
+
+    reset() {
+        if (this.deck.length < 52) {
+            this.createDeck();
         }
-        
-        while (score > 21 && aces > 0) {
-            score -= 10;
-            aces--;
-        }
-        
-        return score;
+        this.playerHand = [];
+        this.dealerHand = [];
+        this.bet = 0;
+        this.phase = 'betting';
+        this.result = '';
+        this.render();
     }
-    
-    deal() {
-        if (this.chips < this.bet) {
+
+    placeBet(amount) {
+        if (this.phase !== 'betting') return;
+        if (amount > this.playerChips) {
             app.showSnackbar('Not enough chips!');
             return;
         }
-        
-        this.chips -= this.bet;
-        this.createDeck();
+        this.bet = amount;
+        this.deal();
+    }
+
+    deal() {
         this.playerHand = [this.drawCard(), this.drawCard()];
         this.dealerHand = [this.drawCard(), this.drawCard()];
-        this.playerScore = this.calculateScore(this.playerHand);
-        this.dealerScore = this.calculateScore(this.dealerHand);
-        this.gamePhase = 'playing';
-        
+        this.dealerHand[1].hidden = true;
+        this.phase = 'playing';
+
         // Check for blackjack
-        if (this.playerScore === 21) {
-            this.dealerTurn();
+        if (this.calculateHand(this.playerHand) === 21) {
+            this.stand();
         } else {
             this.render();
         }
     }
-    
+
+    drawCard() {
+        if (this.deck.length === 0) this.createDeck();
+        return this.deck.pop();
+    }
+
+    calculateHand(hand) {
+        let total = 0;
+        let aces = 0;
+        
+        for (const card of hand) {
+            if (card.hidden) continue;
+            total += card.numValue;
+            if (card.value === 'A') aces++;
+        }
+        
+        while (total > 21 && aces > 0) {
+            total -= 10;
+            aces--;
+        }
+        
+        return total;
+    }
+
     hit() {
-        this.playerHand.push(this.drawCard());
-        this.playerScore = this.calculateScore(this.playerHand);
+        if (this.phase !== 'playing') return;
         
-        if (this.playerScore > 21) {
+        this.playerHand.push(this.drawCard());
+        const total = this.calculateHand(this.playerHand);
+        
+        if (total > 21) {
             this.endGame('bust');
-        } else if (this.playerScore === 21) {
-            this.dealerTurn();
+        } else if (total === 21) {
+            this.stand();
         } else {
             this.render();
         }
     }
-    
+
     stand() {
-        this.dealerTurn();
-    }
-    
-    dealerTurn() {
-        this.gamePhase = 'dealerTurn';
+        if (this.phase !== 'playing') return;
         
-        const dealerPlay = () => {
-            this.dealerScore = this.calculateScore(this.dealerHand);
-            
-            if (this.dealerScore < 17) {
-                this.dealerHand.push(this.drawCard());
-                this.render();
-                setTimeout(dealerPlay, 700);
-            } else {
-                this.determineWinner();
-            }
-        };
-        
+        this.phase = 'dealer';
+        this.dealerHand[1].hidden = false;
         this.render();
-        setTimeout(dealerPlay, 700);
-    }
-    
-    determineWinner() {
-        this.dealerScore = this.calculateScore(this.dealerHand);
         
-        if (this.dealerScore > 21) {
-            this.endGame('dealerBust');
-        } else if (this.playerScore > this.dealerScore) {
+        setTimeout(() => this.dealerPlay(), 500);
+    }
+
+    dealerPlay() {
+        const dealerTotal = this.calculateHand(this.dealerHand);
+        
+        if (dealerTotal < 17) {
+            this.dealerHand.push(this.drawCard());
+            this.render();
+            setTimeout(() => this.dealerPlay(), 500);
+        } else {
+            this.determineWinner();
+        }
+    }
+
+    doubleDown() {
+        if (this.phase !== 'playing' || this.playerHand.length !== 2) return;
+        if (this.bet > this.playerChips - this.bet) {
+            app.showSnackbar('Not enough chips to double!');
+            return;
+        }
+        
+        this.bet *= 2;
+        this.playerHand.push(this.drawCard());
+        
+        if (this.calculateHand(this.playerHand) > 21) {
+            this.endGame('bust');
+        } else {
+            this.stand();
+        }
+    }
+
+    determineWinner() {
+        const playerTotal = this.calculateHand(this.playerHand);
+        const dealerTotal = this.calculateHand(this.dealerHand);
+        const playerBJ = playerTotal === 21 && this.playerHand.length === 2;
+        const dealerBJ = dealerTotal === 21 && this.dealerHand.length === 2;
+        
+        if (dealerTotal > 21) {
+            this.endGame('dealer_bust');
+        } else if (playerBJ && !dealerBJ) {
+            this.endGame('blackjack');
+        } else if (dealerBJ && !playerBJ) {
+            this.endGame('dealer_blackjack');
+        } else if (playerTotal > dealerTotal) {
             this.endGame('win');
-        } else if (this.playerScore < this.dealerScore) {
+        } else if (dealerTotal > playerTotal) {
             this.endGame('lose');
         } else {
             this.endGame('push');
         }
     }
-    
+
     endGame(result) {
-        this.gamePhase = 'ended';
+        this.phase = 'ended';
+        this.dealerHand.forEach(c => c.hidden = false);
         
-        let message = '';
         switch (result) {
-            case 'bust':
-                message = '💥 Bust! You lose.';
-                break;
-            case 'dealerBust':
-                message = '🎉 Dealer busts! You win!';
-                this.chips += this.bet * 2;
+            case 'blackjack':
+                this.result = '🎰 Blackjack! You win!';
+                this.playerChips += Math.floor(this.bet * 1.5);
                 break;
             case 'win':
-                if (this.playerScore === 21 && this.playerHand.length === 2) {
-                    message = '🃏 Blackjack! You win 1.5x!';
-                    this.chips += Math.floor(this.bet * 2.5);
-                } else {
-                    message = '🎉 You win!';
-                    this.chips += this.bet * 2;
-                }
+            case 'dealer_bust':
+                this.result = '🎉 You win!';
+                this.playerChips += this.bet;
                 break;
             case 'lose':
-                message = '😢 Dealer wins.';
+            case 'dealer_blackjack':
+            case 'bust':
+                this.result = result === 'bust' ? '💥 Bust! You lose.' : '😢 Dealer wins.';
+                this.playerChips -= this.bet;
                 break;
             case 'push':
-                message = '🤝 Push! Bet returned.';
-                this.chips += this.bet;
+                this.result = '🤝 Push - bet returned.';
                 break;
         }
         
-        localStorage.setItem('blackjack-chips', this.chips.toString());
-        app.showSnackbar(message);
+        localStorage.setItem('blackjack-chips', this.playerChips.toString());
         this.render();
     }
-    
-    renderCard(card, hidden = false) {
-        if (hidden) {
-            return `<div class="bj-card hidden">🂠</div>`;
-        }
-        const isRed = card.suit === '♥' || card.suit === '♦';
-        return `<div class="bj-card ${isRed ? 'red' : 'black'}">
-            <span class="card-value">${card.value}</span>
-            <span class="card-suit">${card.suit}</span>
-        </div>`;
-    }
-    
+
     render() {
-        const showDealerSecond = this.gamePhase === 'dealerTurn' || this.gamePhase === 'ended';
-        
         this.controlsArea.innerHTML = `
-            <div style="text-align: center; margin-bottom: 12px;">
-                <span style="font-size: 20px;">💰 ${this.chips}</span>
-            </div>
-            ${this.gamePhase === 'betting' ? `
-                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px;">
-                    <button class="btn" id="bjBetDown">-</button>
-                    <span style="font-size: 18px; min-width: 60px; text-align: center;">$${this.bet}</span>
-                    <button class="btn" id="bjBetUp">+</button>
-                </div>
-                <button class="btn btn-primary" id="bjDeal">Deal</button>
-            ` : this.gamePhase === 'playing' ? `
-                <div style="display: flex; gap: 8px; justify-content: center;">
-                    <button class="btn btn-primary" id="bjHit">Hit</button>
-                    <button class="btn" id="bjStand">Stand</button>
-                </div>
-            ` : this.gamePhase === 'ended' ? `
-                <button class="btn btn-primary" id="bjNewGame">New Hand</button>
-                ${this.chips === 0 ? `<button class="btn" id="bjReset" style="margin-left: 8px;">Reset Chips</button>` : ''}
-            ` : ''}
+            <button class="btn btn-secondary" id="bjResetChips">Reset Chips</button>
         `;
         
-        if (this.gamePhase === 'betting') {
-            document.getElementById('bjBetDown')?.addEventListener('click', () => {
-                if (this.bet > 10) { this.bet -= 10; this.render(); }
-            });
-            document.getElementById('bjBetUp')?.addEventListener('click', () => {
-                if (this.bet < Math.min(500, this.chips)) { this.bet += 10; this.render(); }
-            });
-            document.getElementById('bjDeal')?.addEventListener('click', () => this.deal());
-        } else if (this.gamePhase === 'playing') {
-            document.getElementById('bjHit')?.addEventListener('click', () => this.hit());
-            document.getElementById('bjStand')?.addEventListener('click', () => this.stand());
-        } else if (this.gamePhase === 'ended') {
-            document.getElementById('bjNewGame')?.addEventListener('click', () => {
-                this.gamePhase = 'betting';
-                this.render();
-            });
-            document.getElementById('bjReset')?.addEventListener('click', () => {
-                this.chips = 1000;
-                localStorage.setItem('blackjack-chips', '1000');
-                this.gamePhase = 'betting';
-                this.render();
-            });
+        document.getElementById('bjResetChips')?.addEventListener('click', () => {
+            this.playerChips = 1000;
+            localStorage.setItem('blackjack-chips', '1000');
+            this.reset();
+        });
+
+        this.statusArea.textContent = `Chips: $${this.playerChips}`;
+
+        let html = '<div class="blackjack-table">';
+
+        // Dealer area
+        html += '<div class="bj-area dealer-area">';
+        html += '<div class="bj-label">Dealer';
+        if (this.phase !== 'betting') {
+            const dealerTotal = this.calculateHand(this.dealerHand);
+            html += this.dealerHand.some(c => c.hidden) ? '' : ` (${dealerTotal})`;
         }
-        
-        this.statusArea.textContent = this.gamePhase === 'betting' ? 'Place your bet!' :
-            this.gamePhase === 'playing' ? `Your score: ${this.playerScore}` :
-            this.gamePhase === 'dealerTurn' ? 'Dealer\'s turn...' :
-            `You: ${this.playerScore} | Dealer: ${this.dealerScore}`;
-        
-        let html = `<div class="bj-table">
-            <div class="bj-hand">
-                <div class="hand-label">Dealer ${showDealerSecond ? `(${this.dealerScore})` : ''}</div>
-                <div class="cards">
-                    ${this.dealerHand.map((card, i) => 
-                        this.renderCard(card, i === 1 && !showDealerSecond)
-                    ).join('')}
+        html += '</div>';
+        html += '<div class="bj-hand">';
+        this.dealerHand.forEach(card => {
+            html += this.renderCard(card);
+        });
+        html += '</div></div>';
+
+        // Result
+        if (this.result) {
+            html += `<div class="bj-result">${this.result}</div>`;
+        }
+
+        // Player area
+        html += '<div class="bj-area player-area">';
+        html += '<div class="bj-hand">';
+        this.playerHand.forEach(card => {
+            html += this.renderCard(card);
+        });
+        html += '</div>';
+        html += '<div class="bj-label">You';
+        if (this.phase !== 'betting') {
+            html += ` (${this.calculateHand(this.playerHand)})`;
+        }
+        html += '</div></div>';
+
+        // Controls
+        html += '<div class="bj-controls">';
+        if (this.phase === 'betting') {
+            html += `
+                <div class="bj-bet-buttons">
+                    <button class="bj-chip" data-bet="10">$10</button>
+                    <button class="bj-chip" data-bet="25">$25</button>
+                    <button class="bj-chip" data-bet="50">$50</button>
+                    <button class="bj-chip" data-bet="100">$100</button>
                 </div>
-            </div>
-            <div class="bj-hand player">
-                <div class="hand-label">You (${this.playerScore})</div>
-                <div class="cards">
-                    ${this.playerHand.map(card => this.renderCard(card)).join('')}
-                </div>
-            </div>
-        </div>
-        <style>
-            .bj-table {
-                display: flex;
-                flex-direction: column;
-                gap: 30px;
-                padding: 20px;
-                background: linear-gradient(145deg, #0d5c2e, #0a4423);
-                border-radius: 16px;
-                max-width: 350px;
-                margin: 0 auto;
-            }
-            .bj-hand {
-                text-align: center;
-            }
-            .hand-label {
-                color: white;
-                font-size: 14px;
-                margin-bottom: 8px;
-                opacity: 0.8;
-            }
-            .cards {
-                display: flex;
-                justify-content: center;
-                gap: -20px;
-            }
-            .bj-card {
-                width: 60px;
-                height: 84px;
-                background: white;
-                border-radius: 8px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                font-size: 24px;
-                font-weight: bold;
-                box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
-                margin-left: -15px;
-            }
-            .bj-card:first-child { margin-left: 0; }
-            .bj-card.red { color: #dc2626; }
-            .bj-card.black { color: #1f2937; }
-            .bj-card.hidden {
-                background: linear-gradient(145deg, #1e3a8a, #1e40af);
-                color: white;
-                font-size: 40px;
-            }
-            .card-value { font-size: 20px; }
-            .card-suit { font-size: 24px; margin-top: -4px; }
-        </style>`;
-        
+            `;
+        } else if (this.phase === 'playing') {
+            html += `
+                <button class="bj-btn" id="bjHit">Hit</button>
+                <button class="bj-btn" id="bjStand">Stand</button>
+                <button class="bj-btn" id="bjDouble">Double</button>
+            `;
+        } else if (this.phase === 'ended') {
+            html += `<button class="bj-btn" id="bjNewHand">New Hand</button>`;
+        }
+        html += '</div>';
+
+        if (this.bet > 0) {
+            html += `<div class="bj-bet">Bet: $${this.bet}</div>`;
+        }
+
+        html += '</div>';
         this.gameArea.innerHTML = html;
+
+        if (!document.getElementById('blackjack-styles')) {
+            const style = document.createElement('style');
+            style.id = 'blackjack-styles';
+            style.textContent = `
+                .blackjack-table {
+                    background: linear-gradient(135deg, #1a472a, #0d2818);
+                    border-radius: 20px;
+                    padding: 20px;
+                    min-height: 400px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 15px;
+                }
+                .bj-area { text-align: center; }
+                .bj-label { color: #90EE90; font-size: 14px; margin: 8px 0; }
+                .bj-hand { display: flex; gap: 8px; justify-content: center; min-height: 100px; }
+                .bj-card {
+                    width: 60px; height: 85px;
+                    border-radius: 6px; border: 1px solid #333;
+                    display: flex; flex-direction: column;
+                    justify-content: space-between; padding: 4px;
+                    font-weight: bold; background: white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                }
+                .bj-card.red { color: #dc2626; }
+                .bj-card.black { color: #1f2937; }
+                .bj-card.hidden {
+                    background: linear-gradient(135deg, #1e3a5f, #0d253f);
+                    color: #4a90d9;
+                    justify-content: center;
+                    font-size: 40px;
+                }
+                .bj-card-top, .bj-card-bottom { font-size: 12px; }
+                .bj-card-bottom { text-align: right; transform: rotate(180deg); }
+                .bj-card-center { font-size: 24px; text-align: center; }
+                .bj-result {
+                    font-size: 24px; font-weight: bold;
+                    color: gold; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+                    padding: 10px 20px;
+                    background: rgba(0,0,0,0.3);
+                    border-radius: 8px;
+                }
+                .bj-controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+                .bj-bet-buttons { display: flex; gap: 10px; }
+                .bj-chip {
+                    width: 55px; height: 55px; border-radius: 50%;
+                    border: 3px dashed rgba(255,255,255,0.5);
+                    background: linear-gradient(145deg, #c41e3a, #8b0000);
+                    color: white; font-weight: bold; font-size: 12px;
+                    cursor: pointer; transition: transform 0.2s;
+                }
+                .bj-chip:hover { transform: scale(1.1); }
+                .bj-btn {
+                    padding: 12px 24px; border: none; border-radius: 8px;
+                    background: linear-gradient(145deg, #ffd700, #daa520);
+                    color: #1a1a1a; font-weight: bold; font-size: 16px;
+                    cursor: pointer; transition: transform 0.2s;
+                }
+                .bj-btn:hover { transform: scale(1.05); }
+                .bj-bet { color: gold; font-size: 18px; font-weight: bold; }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Bind events
+        this.gameArea.querySelectorAll('.bj-chip').forEach(btn => {
+            btn.addEventListener('click', () => this.placeBet(parseInt(btn.dataset.bet)));
+        });
+        document.getElementById('bjHit')?.addEventListener('click', () => this.hit());
+        document.getElementById('bjStand')?.addEventListener('click', () => this.stand());
+        document.getElementById('bjDouble')?.addEventListener('click', () => this.doubleDown());
+        document.getElementById('bjNewHand')?.addEventListener('click', () => this.reset());
     }
-    
+
+    renderCard(card) {
+        if (card.hidden) {
+            return '<div class="bj-card hidden">🂠</div>';
+        }
+        return `
+            <div class="bj-card ${card.color}">
+                <div class="bj-card-top">${card.value}${card.suit}</div>
+                <div class="bj-card-center">${card.suit}</div>
+                <div class="bj-card-bottom">${card.value}${card.suit}</div>
+            </div>
+        `;
+    }
+
     cleanup() {}
 }
