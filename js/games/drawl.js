@@ -16,6 +16,7 @@ class Drawl {
         this.lastX = 0;
         this.lastY = 0;
         this.color = '#000000';
+        this.brushType = 'round';
         this.lineWidth = 4;
         this.timeLeft = 60;
         this.timer = null;
@@ -119,19 +120,24 @@ class Drawl {
                 }
                 .drawl-tools {
                     display: flex;
-                    gap: 8px;
+                    gap: 6px;
                     justify-content: center;
                     flex-wrap: wrap;
                     margin-bottom: 12px;
                 }
                 .color-btn {
-                    width: 36px;
-                    height: 36px;
+                    width: 32px;
+                    height: 32px;
                     border-radius: 50%;
                     border: 3px solid transparent;
                     cursor: pointer;
+                    appearance: none;
+                    padding: 0;
+                    background: none;
+                    transition: transform 0.1s, box-shadow 0.1s;
                 }
-                .color-btn.active { border-color: var(--text-primary); }
+                .color-btn.active { border-color: var(--text-primary); box-shadow: 0 0 0 3px var(--text-primary); transform: scale(1.15); }
+                .color-btn[data-color="#ffffff"] { border-color: #ccc; }
                 .size-btn {
                     padding: 8px 16px;
                     border-radius: 8px;
@@ -140,6 +146,15 @@ class Drawl {
                     cursor: pointer;
                 }
                 .size-btn.active { border-color: var(--pink-deep); background: var(--pink); color: white; }
+                .brush-btn {
+                    padding: 8px 14px;
+                    border-radius: 8px;
+                    border: 2px solid var(--bg-secondary);
+                    background: var(--card-bg);
+                    cursor: pointer;
+                    font-size: 13px;
+                }
+                .brush-btn.active { border-color: var(--pink-deep); background: var(--pink); color: white; }
                 .drawl-timer {
                     font-size: 48px;
                     font-weight: bold;
@@ -209,18 +224,19 @@ class Drawl {
         this.gameArea.innerHTML = `
             <div class="drawl-timer ${this.timeLeft <= 10 ? 'warning' : ''}" id="drawlTimer">${this.timeLeft}</div>
             <div class="drawl-tools">
-                <button class="color-btn active" style="background: #000000;" data-color="#000000"></button>
-                <button class="color-btn" style="background: #ef4444;" data-color="#ef4444"></button>
-                <button class="color-btn" style="background: #22c55e;" data-color="#22c55e"></button>
-                <button class="color-btn" style="background: #3b82f6;" data-color="#3b82f6"></button>
-                <button class="color-btn" style="background: #eab308;" data-color="#eab308"></button>
-                <button class="color-btn" style="background: #a855f7;" data-color="#a855f7"></button>
-                <button class="color-btn" style="background: #ffffff; border: 2px solid #ccc;" data-color="#ffffff"></button>
+                ${['#000000','#ef4444','#f97316','#eab308','#84cc16','#22c55e','#14b8a6','#3b82f6','#a855f7','#ec4899','#78716c','#92400e','#ffffff','#fde68a'].map(c =>
+                    `<button class="color-btn ${this.color === c ? 'active' : ''}" style="background-color: ${c};" data-color="${c}"></button>`
+                ).join('')}
             </div>
             <div class="drawl-tools">
                 <button class="size-btn ${this.lineWidth === 2 ? 'active' : ''}" data-size="2">Thin</button>
                 <button class="size-btn ${this.lineWidth === 4 ? 'active' : ''}" data-size="4">Medium</button>
                 <button class="size-btn ${this.lineWidth === 8 ? 'active' : ''}" data-size="8">Thick</button>
+            </div>
+            <div class="drawl-tools">
+                <button class="brush-btn ${this.brushType === 'round' ? 'active' : ''}" data-brush="round">Round</button>
+                <button class="brush-btn ${this.brushType === 'square' ? 'active' : ''}" data-brush="square">Square</button>
+                <button class="brush-btn ${this.brushType === 'chisel' ? 'active' : ''}" data-brush="chisel">Chisel</button>
             </div>
             <div class="drawl-canvas-container">
                 <canvas id="drawlCanvas" width="320" height="320"></canvas>
@@ -245,6 +261,14 @@ class Drawl {
                 this.lineWidth = parseInt(btn.dataset.size);
             });
         });
+
+        this.gameArea.querySelectorAll('.brush-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.gameArea.querySelectorAll('.brush-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.brushType = btn.dataset.brush;
+            });
+        });
     }
 
     setupCanvas() {
@@ -254,8 +278,7 @@ class Drawl {
         this.ctx = this.canvas.getContext('2d');
         this.ctx.fillStyle = 'white';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.lineCap = 'round';
-        this.ctx.lineJoin = 'round';
+        this.applyBrushSettings();
 
         // Mouse events
         this.canvas.addEventListener('mousedown', (e) => this.startDraw(e));
@@ -275,6 +298,17 @@ class Drawl {
         this.canvas.addEventListener('touchend', () => this.stopDraw());
     }
 
+    applyBrushSettings() {
+        if (!this.ctx) return;
+        if (this.brushType === 'square') {
+            this.ctx.lineCap = 'square';
+            this.ctx.lineJoin = 'miter';
+        } else {
+            this.ctx.lineCap = 'round';
+            this.ctx.lineJoin = 'round';
+        }
+    }
+
     getPos(e) {
         const rect = this.canvas.getBoundingClientRect();
         return {
@@ -292,16 +326,29 @@ class Drawl {
 
     draw(e) {
         if (!this.isDrawing) return;
-        
+
         const pos = this.getPos(e);
-        
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = this.color;
-        this.ctx.lineWidth = this.lineWidth;
-        this.ctx.moveTo(this.lastX, this.lastY);
-        this.ctx.lineTo(pos.x, pos.y);
-        this.ctx.stroke();
-        
+
+        if (this.brushType === 'chisel') {
+            const angle = Math.atan2(pos.y - this.lastY, pos.x - this.lastX);
+            const width = this.lineWidth * 2;
+            const height = this.lineWidth * 0.5;
+            this.ctx.save();
+            this.ctx.translate(pos.x, pos.y);
+            this.ctx.rotate(angle + Math.PI / 4);
+            this.ctx.fillStyle = this.color;
+            this.ctx.fillRect(-width / 2, -height / 2, width, height);
+            this.ctx.restore();
+        } else {
+            this.applyBrushSettings();
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = this.color;
+            this.ctx.lineWidth = this.lineWidth;
+            this.ctx.moveTo(this.lastX, this.lastY);
+            this.ctx.lineTo(pos.x, pos.y);
+            this.ctx.stroke();
+        }
+
         this.lastX = pos.x;
         this.lastY = pos.y;
     }
