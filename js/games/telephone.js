@@ -30,6 +30,8 @@ class Telephone {
         this.isDrawing = false;
         this.lastX = 0;
         this.lastY = 0;
+        this.drawTimer = null;
+        this.drawTimeLeft = 30;
     }
 
     init(gameArea, statusArea, controlsArea) {
@@ -40,6 +42,7 @@ class Telephone {
     }
 
     reset() {
+        clearInterval(this.drawTimer);
         this.chain = [];
         this.currentPlayer = 0;
         this.phase = 'setup';
@@ -228,7 +231,7 @@ class Telephone {
             </div>
         `;
 
-        this.statusArea.textContent = `Player ${this.currentPlayer + 1}'s turn`;
+        this.statusArea.textContent = `Player ${this.currentPlayer + 1}'s turn — 30s`;
 
         this.gameArea.innerHTML = `
             <div class="phone-turn">
@@ -242,6 +245,7 @@ class Telephone {
         `;
 
         this.setupCanvas();
+        this.startDrawTimer();
 
         document.getElementById('phoneClear')?.addEventListener('click', () => {
             this.ctx.fillStyle = 'white';
@@ -249,6 +253,7 @@ class Telephone {
         });
 
         document.getElementById('phoneSubmitDraw')?.addEventListener('click', () => {
+            clearInterval(this.drawTimer);
             const dataUrl = this.canvas.toDataURL();
             this.chain.push({type: 'draw', content: dataUrl, player: this.currentPlayer});
             this.nextTurn();
@@ -274,6 +279,21 @@ class Telephone {
         this.canvas.addEventListener('touchstart', (e) => { e.preventDefault(); this.startDraw(e.touches[0]); });
         this.canvas.addEventListener('touchmove', (e) => { e.preventDefault(); this.draw(e.touches[0]); });
         this.canvas.addEventListener('touchend', () => this.isDrawing = false);
+    }
+
+    startDrawTimer() {
+        this.drawTimeLeft = 30;
+        clearInterval(this.drawTimer);
+        this.drawTimer = setInterval(() => {
+            this.drawTimeLeft--;
+            this.statusArea.textContent = `Player ${this.currentPlayer + 1}'s turn — ${this.drawTimeLeft}s`;
+            if (this.drawTimeLeft <= 0) {
+                clearInterval(this.drawTimer);
+                const dataUrl = this.canvas.toDataURL();
+                this.chain.push({type: 'draw', content: dataUrl, player: this.currentPlayer});
+                this.nextTurn();
+            }
+        }, 1000);
     }
 
     startDraw(e) {
@@ -343,5 +363,7 @@ class Telephone {
         app.showSnackbar('Look how the message changed! 😂');
     }
 
-    cleanup() {}
+    cleanup() {
+        clearInterval(this.drawTimer);
+    }
 }
