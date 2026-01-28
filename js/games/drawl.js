@@ -9,7 +9,7 @@ class Drawl {
         };
         this.difficulty = 'medium';
         this.currentWord = '';
-        this.phase = 'setup'; // setup, drawing, guessing
+        this.phase = 'setup'; // setup, wordReveal, drawing, guessing
         this.canvas = null;
         this.ctx = null;
         this.isDrawing = false;
@@ -37,6 +37,10 @@ class Drawl {
     }
 
     render() {
+        if (this.phase === 'wordReveal') {
+            this.renderWordReveal();
+            return;
+        }
         if (this.phase === 'drawing') {
             this.renderDrawing();
             return;
@@ -155,9 +159,31 @@ class Drawl {
     startRound() {
         const wordList = this.words[this.difficulty];
         this.currentWord = wordList[Math.floor(Math.random() * wordList.length)];
-        this.phase = 'drawing';
+        this.phase = 'wordReveal';
         this.timeLeft = 60;
-        this.renderDrawing();
+        this.render();
+    }
+
+    renderWordReveal() {
+        this.statusArea.textContent = 'Only the artist should see this!';
+        this.controlsArea.innerHTML = '';
+        this.gameArea.innerHTML = `
+            <div class="drawl-word-reveal">
+                <div>Your word is:</div>
+                <div class="drawl-word" id="drawlWordTap" style="cursor: pointer;">${this.currentWord.toUpperCase()}</div>
+                <div style="font-size: 14px; opacity: 0.8;">Tap the word when ready to draw</div>
+            </div>
+            <div style="text-align: center;">
+                <button class="btn" id="drawlDifferent">🔄 Different Word</button>
+            </div>
+        `;
+        document.getElementById('drawlWordTap')?.addEventListener('click', () => {
+            this.phase = 'drawing';
+            this.renderDrawing();
+        });
+        document.getElementById('drawlDifferent')?.addEventListener('click', () => {
+            this.startRound();
+        });
     }
 
     renderDrawing() {
@@ -178,7 +204,7 @@ class Drawl {
             this.startRound();
         });
 
-        this.statusArea.textContent = `Draw: ${this.currentWord.toUpperCase()}`;
+        this.statusArea.textContent = 'Draw! Others are guessing...';
 
         this.gameArea.innerHTML = `
             <div class="drawl-timer ${this.timeLeft <= 10 ? 'warning' : ''}" id="drawlTimer">${this.timeLeft}</div>
