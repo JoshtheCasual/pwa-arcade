@@ -1,0 +1,25 @@
+{
+  "name": "Game Arcade",
+  "short_name": "Arcade",
+  "description": "Classic games: Tic Tac Toe, Checkers, Go, Memory Match",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FFF0F5",
+  "theme_color": "#FFB5C5",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"]
+}

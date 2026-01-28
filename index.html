@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Arcade">
+    <meta name="theme-color" content="#FFB5C5">
+    <meta name="description" content="Classic games: Tic Tac Toe, Checkers, Go, Memory Match">
+    
+    <title>🎮 Game Arcade</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+    <link rel="apple-touch-icon" href="icons/icon.svg">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        /* Splash screen */
+        .splash {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #FFF0F5 0%, #F0F8FF 50%, #F5FFFA 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+        .splash.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .splash-icon {
+            width: 120px;
+            height: 120px;
+            animation: bounce 1s ease-in-out infinite;
+        }
+        .splash-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 32px;
+            font-weight: 600;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #FF8FAB 0%, #A78BDB 50%, #7BBFDE 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div class="splash" id="splash">
+        <img src="icons/icon.svg" alt="" class="splash-icon">
+        <div class="splash-title">Game Arcade</div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-bar">
+            <button class="icon-btn back-btn" id="backBtn" style="display: none;">
+                <span class="material-icons-round">arrow_back_ios_new</span>
+            </button>
+            <h1 class="app-title" id="appTitle">Game Arcade</h1>
+            <button class="icon-btn" id="themeBtn">
+                <span class="material-icons-round">dark_mode</span>
+            </button>
+        </header>
+
+        <!-- Game Selection -->
+        <div class="game-menu" id="gameMenu">
+            <div class="game-card" data-game="tictactoe">
+                <div class="game-icon">
+                    <span class="material-icons-round">grid_3x3</span>
+                </div>
+                <div class="game-info">
+                    <h2>Tic Tac Toe</h2>
+                    <p>Classic X's and O's</p>
+                </div>
+            </div>
+            <div class="game-card" data-game="checkers">
+                <div class="game-icon">
+                    <span class="material-icons-round">radio_button_checked</span>
+                </div>
+                <div class="game-info">
+                    <h2>Checkers</h2>
+                    <p>Jump to victory!</p>
+                </div>
+            </div>
+            <div class="game-card" data-game="go">
+                <div class="game-icon">
+                    <span class="material-icons-round">blur_on</span>
+                </div>
+                <div class="game-info">
+                    <h2>Go</h2>
+                    <p>Capture territory</p>
+                </div>
+            </div>
+            <div class="game-card" data-game="memory">
+                <div class="game-icon">
+                    <span class="material-icons-round">style</span>
+                </div>
+                <div class="game-info">
+                    <h2>Memory Match</h2>
+                    <p>Find the pairs!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Area -->
+        <div class="game-container" id="gameContainer" style="display: none;">
+            <div class="game-status" id="gameStatus"></div>
+            <div class="game-area" id="gameArea"></div>
+            <div class="game-controls" id="gameControls"></div>
+        </div>
+
+        <!-- Snackbar -->
+        <div class="snackbar" id="snackbar"></div>
+    </div>
+
+    <script src="js/games/tictactoe.js"></script>
+    <script src="js/games/checkers.js"></script>
+    <script src="js/games/go.js"></script>
+    <script src="js/games/memory.js"></script>
+    <script src="js/app.js"></script>
+    
+    <script>
+        // Hide splash screen
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('splash').classList.add('hidden');
+            }, 800);
+        });
+        
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('SW registered'))
+                .catch(err => console.log('SW failed:', err));
+        }
+    </script>
+</body>
+</html>
