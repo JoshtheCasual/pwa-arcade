@@ -9,6 +9,7 @@ class Checkers {
         this.gameOver = false;
         this.mode = 'ai'; // 'ai' or 'pvp'
         this.difficulty = 'medium';
+        this.forceJump = false; // Optional jumping by default
     }
     
     init(gameArea, statusArea, controlsArea) {
@@ -52,6 +53,10 @@ class Checkers {
                 <button class="mode-btn ${this.mode === 'ai' ? 'active' : ''}" data-mode="ai">🤖 vs AI</button>
                 <button class="mode-btn ${this.mode === 'pvp' ? 'active' : ''}" data-mode="pvp">👥 2 Players</button>
             </div>
+            <label class="toggle-option" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; cursor: pointer;">
+                <input type="checkbox" id="forceJumpToggle" ${this.forceJump ? 'checked' : ''}>
+                <span>Force jumps</span>
+            </label>
             <button class="btn btn-primary" style="margin-top: 12px;" id="checkersReset">New Game</button>
         `;
         
@@ -60,6 +65,10 @@ class Checkers {
                 this.mode = btn.dataset.mode;
                 this.reset();
             });
+        });
+        
+        document.getElementById('forceJumpToggle')?.addEventListener('change', (e) => {
+            this.forceJump = e.target.checked;
         });
         
         document.getElementById('checkersReset')?.addEventListener('click', () => this.reset());
@@ -163,9 +172,12 @@ class Checkers {
             }
         }
         
-        if (jumps.length > 0) return jumps;
-        if (this.hasAnyJump(piece.color)) return [];
-        return moves;
+        if (this.forceJump) {
+            if (jumps.length > 0) return jumps;
+            if (this.hasAnyJump(piece.color)) return [];
+            return moves;
+        }
+        return [...moves, ...jumps];
     }
     
     hasAnyJump(color) {
