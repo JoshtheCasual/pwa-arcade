@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pwa-arcade-v4';
+const CACHE_NAME = 'pwa-arcade-v5';
 const ASSETS = [
   '/',
   '/index.html',
@@ -16,6 +16,19 @@ const ASSETS = [
   '/js/games/battleship.js',
   // Puzzle games
   '/js/games/minesweeper.js',
+  '/js/games/lightsout.js',
+  '/js/games/slidingpuzzle.js',
+  '/js/games/pong.js',
+  '/js/games/flappy.js',
+  '/js/games/dotsandboxes.js',
+  '/js/games/mancala.js',
+  '/js/games/spaceinvaders.js',
+  '/js/games/asteroids.js',
+  '/js/games/freecell.js',
+  '/js/games/sudoku.js',
+  '/js/games/boggle.js',
+  '/js/games/nonogram.js',
+  '/js/games/crossword.js',
   '/js/games/puzzle2048.js',
   // Word games
   '/js/games/wordle.js',

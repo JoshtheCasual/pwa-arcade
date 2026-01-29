@@ -17,24 +17,37 @@ class GameArcade {
         if (typeof ConnectFour !== 'undefined') this.games.connectfour = new ConnectFour();
         if (typeof Reversi !== 'undefined') this.games.reversi = new Reversi();
         if (typeof Battleship !== 'undefined') this.games.battleship = new Battleship();
+        if (typeof DotsAndBoxes !== 'undefined') this.games.dotsandboxes = new DotsAndBoxes();
+        if (typeof Mancala !== 'undefined') this.games.mancala = new Mancala();
         
         // Puzzle
         if (typeof MemoryGame !== 'undefined') this.games.memory = new MemoryGame();
         if (typeof Puzzle2048 !== 'undefined') this.games.puzzle2048 = new Puzzle2048();
         if (typeof Minesweeper !== 'undefined') this.games.minesweeper = new Minesweeper();
+        if (typeof LightsOut !== 'undefined') this.games.lightsout = new LightsOut();
+        if (typeof SlidingPuzzle !== 'undefined') this.games.slidingpuzzle = new SlidingPuzzle();
+        if (typeof Sudoku !== 'undefined') this.games.sudoku = new Sudoku();
+        if (typeof Nonogram !== 'undefined') this.games.nonogram = new Nonogram();
         
         // Word
         if (typeof Wordle !== 'undefined') this.games.wordle = new Wordle();
         if (typeof Hangman !== 'undefined') this.games.hangman = new Hangman();
+        if (typeof Boggle !== 'undefined') this.games.boggle = new Boggle();
+        if (typeof Crossword !== 'undefined') this.games.crossword = new Crossword();
         
         // Arcade
         if (typeof Snake !== 'undefined') this.games.snake = new Snake();
         if (typeof Breakout !== 'undefined') this.games.breakout = new Breakout();
         if (typeof Tetris !== 'undefined') this.games.tetris = new Tetris();
+        if (typeof Pong !== 'undefined') this.games.pong = new Pong();
+        if (typeof FlappyBird !== 'undefined') this.games.flappy = new FlappyBird();
+        if (typeof SpaceInvaders !== 'undefined') this.games.spaceinvaders = new SpaceInvaders();
+        if (typeof Asteroids !== 'undefined') this.games.asteroids = new Asteroids();
         
         // Card
         if (typeof Solitaire !== 'undefined') this.games.solitaire = new Solitaire();
         if (typeof Blackjack !== 'undefined') this.games.blackjack = new Blackjack();
+        if (typeof Freecell !== 'undefined') this.games.freecell = new Freecell();
         
         // Classic
         if (typeof TicTacToe !== 'undefined') this.games.tictactoe = new TicTacToe();
