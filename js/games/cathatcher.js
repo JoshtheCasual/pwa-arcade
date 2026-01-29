@@ -41,6 +41,15 @@ class CatHatcher {
         this.pickerSlot = 0;
         this.pickerSort = 'name';
         this.pickerFilter = 'all';
+        // Cats tab UI state
+        this.catsSort = 'power';
+        this.catsFilter = 'all';
+        this.expandedCatId = null;
+        // Merge system
+        this.mergeMode = false;
+        this.mergeFirst = null;
+        this.mergeSecond = null;
+        this.mergeCosts = { common: 100, rare: 500, epic: 2500, legendary: 10000 };
         this.loadState();
     }
 
@@ -69,6 +78,10 @@ class CatHatcher {
                 this.breedCounts = s.breedCounts ?? def.breedCounts;
                 this.nextCatId = s.nextCatId ?? def.nextCatId;
                 this.lastOnline = s.lastOnline ?? Date.now();
+                // Migrate: add mergeCount to existing cats
+                for (const cat of this.ownedCats) {
+                    if (cat.mergeCount === undefined) cat.mergeCount = 0;
+                }
                 // Calculate offline earnings
                 const elapsed = Math.min(Date.now() - this.lastOnline, 8 * 60 * 60 * 1000);
                 const offlineIncome = this.calcIncomePerSec() * (elapsed / 1000);
@@ -278,7 +291,8 @@ class CatHatcher {
             name: `${breed.name} #${count}`,
             stats: { atk: rollStat(), def: rollStat(), spd: rollStat(), lck: rollStat() },
             victories: 0,
-            trainingCooldown: 0
+            trainingCooldown: 0,
+            mergeCount: 0
         };
         this.ownedCats.push(cat);
         this.currentEgg = { rarity: 'common', progress: 0 };
@@ -307,6 +321,22 @@ class CatHatcher {
         document.getElementById('ch-continue')?.addEventListener('click', () => this.renderHatch());
     }
 
+    getFilteredSortedCatsForTab() {
+        const rarityOrder = { common: 0, rare: 1, epic: 2, legendary: 3 };
+        let cats = [...this.ownedCats];
+        if (this.catsFilter !== 'all') {
+            cats = cats.filter(cat => this.breeds[cat.breedId].rarity === this.catsFilter);
+        }
+        switch (this.catsSort) {
+            case 'power': cats.sort((a, b) => (b.stats.atk + b.stats.def + b.stats.spd + b.stats.lck) - (a.stats.atk + a.stats.def + a.stats.spd + a.stats.lck)); break;
+            case 'name': cats.sort((a, b) => a.name.localeCompare(b.name)); break;
+            case 'rarity': cats.sort((a, b) => rarityOrder[this.breeds[b.breedId].rarity] - rarityOrder[this.breeds[a.breedId].rarity]); break;
+            case 'victories': cats.sort((a, b) => b.victories - a.victories); break;
+            case 'newest': cats.sort((a, b) => b.id - a.id); break;
+        }
+        return cats;
+    }
+
     renderCats(container) {
         const c = container || document.getElementById('ch-content');
         if (!c) return;
@@ -314,48 +344,284 @@ class CatHatcher {
             c.innerHTML = '<div class="ch-empty">No cats yet! Hatch an egg to get started.</div>';
             return;
         }
-        let html = '<div class="ch-cats-grid">';
-        for (const cat of this.ownedCats) {
+
+        const cats = this.getFilteredSortedCatsForTab();
+        let html = '';
+
+        // Toolbar
+        html += `<div class="ch-cats-toolbar">
+            <select class="ch-picker-sort" id="ch-cats-sort">
+                <option value="power" ${this.catsSort === 'power' ? 'selected' : ''}>Power</option>
+                <option value="name" ${this.catsSort === 'name' ? 'selected' : ''}>Name</option>
+                <option value="rarity" ${this.catsSort === 'rarity' ? 'selected' : ''}>Rarity</option>
+                <option value="victories" ${this.catsSort === 'victories' ? 'selected' : ''}>Victories</option>
+                <option value="newest" ${this.catsSort === 'newest' ? 'selected' : ''}>Newest</option>
+            </select>
+            <div class="ch-filter-chips">
+                ${['all', 'common', 'rare', 'epic', 'legendary'].map(r =>
+                    `<button class="ch-filter-chip ${this.catsFilter === r ? 'ch-filter-chip-active' : ''}" data-catsfilter="${r}">${r === 'all' ? 'All' : r.charAt(0).toUpperCase() + r.slice(1)}</button>`
+                ).join('')}
+            </div>
+            <button class="ch-merge-toggle ${this.mergeMode ? 'ch-merge-toggle-active' : ''}" id="ch-merge-toggle">Merge</button>
+        </div>`;
+
+        // Grid
+        html += '<div class="ch-cats-grid">';
+        for (const cat of cats) {
             const breed = this.breeds[cat.breedId];
             const cfg = this.rarityConfig[breed.rarity];
-            const cd = cat.trainingCooldown > 0;
-            html += `
-                <div class="ch-cat-card" style="border-color: ${cfg.color}">
-                    <div class="ch-cat-emoji">${breed.emoji}</div>
-                    <div class="ch-cat-name-row" id="ch-name-row-${cat.id}">
-                        <span class="ch-cat-name">${cat.name}</span>
-                        <button class="ch-rename-btn" data-rename="${cat.id}" title="Rename">✏️</button>
-                    </div>
-                    <div class="ch-rarity-badge ch-badge-sm" style="background: ${cfg.color}">${breed.rarity}</div>
-                    <div class="ch-cat-stats">
-                        <span>⚔️${cat.stats.atk}</span> <span>🛡️${cat.stats.def}</span>
-                        <span>💨${cat.stats.spd}</span> <span>🍀${cat.stats.lck}</span>
-                    </div>
-                    <div class="ch-cat-victories">🏆 ${cat.victories}</div>
-                    ${cd ? `<div class="ch-cooldown">⏱️ ${cat.trainingCooldown}s</div>` : `
-                        <div class="ch-train-btns">
-                            <button class="ch-btn ch-btn-sm" data-train="${cat.id}" data-stat="atk">⚔️ Train</button>
-                            <button class="ch-btn ch-btn-sm" data-train="${cat.id}" data-stat="def">🛡️ Train</button>
-                            <button class="ch-btn ch-btn-sm" data-train="${cat.id}" data-stat="spd">💨 Train</button>
-                            <button class="ch-btn ch-btn-sm" data-train="${cat.id}" data-stat="lck">🍀 Train</button>
-                        </div>
-                    `}
-                </div>
-            `;
+            const totalPower = cat.stats.atk + cat.stats.def + cat.stats.spd + cat.stats.lck;
+            const isExpanded = this.expandedCatId === cat.id && !this.mergeMode;
+            const isMergeSelected = this.mergeFirst === cat.id || this.mergeSecond === cat.id;
+
+            // Merge mode disable logic
+            let mergeDisabled = false;
+            if (this.mergeMode && this.mergeFirst !== null && this.mergeFirst !== cat.id && this.mergeSecond !== cat.id) {
+                const firstCat = this.ownedCats.find(c => c.id === this.mergeFirst);
+                if (firstCat && cat.breedId !== firstCat.breedId) mergeDisabled = true;
+            }
+
+            html += `<div class="ch-cat-card ${isExpanded ? 'ch-cat-card-expanded' : ''} ${isMergeSelected ? 'ch-cat-card-merge-selected' : ''} ${mergeDisabled ? 'ch-cat-card-merge-disabled' : ''}" data-catcard="${cat.id}" ${this.mergeMode ? `data-mergecat="${cat.id}"` : ''}>
+                <div class="ch-cat-card-emoji">${breed.emoji}</div>
+                <div class="ch-cat-card-name">${cat.name}</div>
+                <div class="ch-cat-card-rarity"><span class="ch-rarity-dot" style="background:${cfg.color}"></span> ${totalPower}</div>
+                <div class="ch-cat-card-wins">🏆 ${cat.victories}</div>
+                ${cat.mergeCount > 0 ? `<div class="ch-cat-merge-badge">+${cat.mergeCount}</div>` : ''}
+            </div>`;
+
+            // Expanded detail panel
+            if (isExpanded) {
+                html += this.renderCatDetail(cat);
+            }
+
+            // Merge preview after second selected
+            if (this.mergeMode && this.mergeSecond === cat.id) {
+                html += this.renderMergePreview();
+            }
         }
         html += '</div>';
+
+        if (cats.length === 0) {
+            html += '<div class="ch-empty">No cats match this filter.</div>';
+        }
+
         c.innerHTML = html;
 
-        c.querySelectorAll('[data-train]').forEach(btn => {
+        // Event listeners
+        document.getElementById('ch-cats-sort')?.addEventListener('change', (e) => {
+            this.catsSort = e.target.value;
+            this.renderCats();
+        });
+        c.querySelectorAll('[data-catsfilter]').forEach(btn => {
             btn.addEventListener('click', () => {
+                this.catsFilter = btn.dataset.catsfilter;
+                this.renderCats();
+            });
+        });
+        document.getElementById('ch-merge-toggle')?.addEventListener('click', () => {
+            this.mergeMode = !this.mergeMode;
+            this.mergeFirst = null;
+            this.mergeSecond = null;
+            this.expandedCatId = null;
+            this.renderCats();
+        });
+
+        // Card clicks
+        c.querySelectorAll('[data-catcard]').forEach(el => {
+            el.addEventListener('click', () => {
+                const catId = parseInt(el.dataset.catcard);
+                if (this.mergeMode) {
+                    this.handleMergeCardClick(catId);
+                } else {
+                    this.expandedCatId = this.expandedCatId === catId ? null : catId;
+                    this.renderCats();
+                }
+            });
+        });
+
+        // Detail panel buttons
+        c.querySelectorAll('[data-train]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 this.trainCat(parseInt(btn.dataset.train), btn.dataset.stat);
             });
         });
         c.querySelectorAll('[data-rename]').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 this.renameCat(parseInt(btn.dataset.rename));
             });
         });
+
+        // Merge buttons
+        document.getElementById('ch-merge-confirm')?.addEventListener('click', () => this.mergeCats());
+        document.getElementById('ch-merge-cancel')?.addEventListener('click', () => {
+            this.mergeFirst = null;
+            this.mergeSecond = null;
+            this.renderCats();
+        });
+    }
+
+    renderCatDetail(cat) {
+        const breed = this.breeds[cat.breedId];
+        const cfg = this.rarityConfig[breed.rarity];
+        const cd = cat.trainingCooldown > 0;
+        const totalStats = cat.stats.atk + cat.stats.def + cat.stats.spd + cat.stats.lck;
+        const cost = 10 + totalStats * 5;
+        return `<div class="ch-cat-detail">
+            <div class="ch-cat-detail-header">
+                <div class="ch-cat-detail-emoji">${breed.emoji}</div>
+                <div class="ch-cat-detail-info">
+                    <div class="ch-cat-name-row" id="ch-name-row-${cat.id}">
+                        <span class="ch-cat-name">${cat.name}</span>
+                        <button class="ch-rename-btn" data-rename="${cat.id}" title="Rename">✏️</button>
+                    </div>
+                    <div>
+                        <span class="ch-rarity-badge ch-badge-sm" style="background: ${cfg.color}">${breed.rarity}</span>
+                        <span class="ch-cat-detail-breed">${breed.name}</span>
+                        ${cat.mergeCount > 0 ? `<span class="ch-cat-detail-merges">+${cat.mergeCount} merges</span>` : ''}
+                    </div>
+                </div>
+            </div>
+            <div class="ch-cat-detail-stats">
+                <div class="ch-detail-stat"><span class="ch-detail-stat-label">ATK</span><span class="ch-detail-stat-val">⚔️ ${cat.stats.atk}</span></div>
+                <div class="ch-detail-stat"><span class="ch-detail-stat-label">DEF</span><span class="ch-detail-stat-val">🛡️ ${cat.stats.def}</span></div>
+                <div class="ch-detail-stat"><span class="ch-detail-stat-label">SPD</span><span class="ch-detail-stat-val">💨 ${cat.stats.spd}</span></div>
+                <div class="ch-detail-stat"><span class="ch-detail-stat-label">LCK</span><span class="ch-detail-stat-val">🍀 ${cat.stats.lck}</span></div>
+            </div>
+            <div class="ch-cat-detail-victories">🏆 ${cat.victories} victories</div>
+            ${cd ? `<div class="ch-cooldown">⏱️ ${cat.trainingCooldown}s cooldown | Cost: ${this.formatNum(cost)} coins</div>` : `
+                <div class="ch-train-btns">
+                    <button class="ch-btn ch-btn-sm" data-train="${cat.id}" data-stat="atk">⚔️ ATK (${cost})</button>
+                    <button class="ch-btn ch-btn-sm" data-train="${cat.id}" data-stat="def">🛡️ DEF (${cost})</button>
+                    <button class="ch-btn ch-btn-sm" data-train="${cat.id}" data-stat="spd">💨 SPD (${cost})</button>
+                    <button class="ch-btn ch-btn-sm" data-train="${cat.id}" data-stat="lck">🍀 LCK (${cost})</button>
+                </div>
+            `}
+        </div>`;
+    }
+
+    handleMergeCardClick(catId) {
+        if (this.mergeFirst === catId) {
+            this.mergeFirst = this.mergeSecond;
+            this.mergeSecond = null;
+        } else if (this.mergeSecond === catId) {
+            this.mergeSecond = null;
+        } else if (this.mergeFirst === null) {
+            this.mergeFirst = catId;
+        } else if (this.mergeSecond === null) {
+            const firstCat = this.ownedCats.find(c => c.id === this.mergeFirst);
+            const secondCat = this.ownedCats.find(c => c.id === catId);
+            if (firstCat && secondCat && firstCat.breedId === secondCat.breedId) {
+                this.mergeSecond = catId;
+            }
+        }
+        this.renderCats();
+    }
+
+    renderMergePreview() {
+        const cat1 = this.ownedCats.find(c => c.id === this.mergeFirst);
+        const cat2 = this.ownedCats.find(c => c.id === this.mergeSecond);
+        if (!cat1 || !cat2) return '';
+        const breed = this.breeds[cat1.breedId];
+        const cfg = this.rarityConfig[breed.rarity];
+        const cost = this.mergeCosts[breed.rarity];
+        const canAfford = this.coins >= cost;
+
+        const statRow = (label, emoji, s1, s2) => {
+            const base = Math.max(s1, s2);
+            return `<div class="ch-merge-stat-row">
+                <span>${emoji} ${label}:</span>
+                <span>${s1} / ${s2}</span>
+                <span>→ ${base} <span class="ch-merge-bonus">+1~3</span></span>
+            </div>`;
+        };
+
+        return `<div class="ch-merge-preview">
+            <div class="ch-merge-preview-title">Merge Preview</div>
+            <div class="ch-merge-compare">
+                <div class="ch-merge-compare-cat">
+                    <div style="font-size:32px">${breed.emoji}</div>
+                    <div>${cat1.name}</div>
+                </div>
+                <div class="ch-merge-compare-plus">+</div>
+                <div class="ch-merge-compare-cat">
+                    <div style="font-size:32px">${breed.emoji}</div>
+                    <div>${cat2.name}</div>
+                </div>
+            </div>
+            ${statRow('ATK', '⚔️', cat1.stats.atk, cat2.stats.atk)}
+            ${statRow('DEF', '🛡️', cat1.stats.def, cat2.stats.def)}
+            ${statRow('SPD', '💨', cat1.stats.spd, cat2.stats.spd)}
+            ${statRow('LCK', '🍀', cat1.stats.lck, cat2.stats.lck)}
+            <div class="ch-merge-cost ${canAfford ? '' : 'ch-merge-cost-warn'}">Cost: ${this.formatNum(cost)} coins ${canAfford ? '' : '(Not enough!)'}</div>
+            <div class="ch-merge-buttons">
+                <button class="ch-btn ch-btn-primary ${canAfford ? '' : 'ch-btn-disabled'}" id="ch-merge-confirm" ${canAfford ? '' : 'disabled'}>Confirm Merge</button>
+                <button class="ch-btn" id="ch-merge-cancel">Cancel</button>
+            </div>
+        </div>`;
+    }
+
+    mergeCats() {
+        const cat1 = this.ownedCats.find(c => c.id === this.mergeFirst);
+        const cat2 = this.ownedCats.find(c => c.id === this.mergeSecond);
+        if (!cat1 || !cat2 || cat1.breedId !== cat2.breedId) return;
+        const breed = this.breeds[cat1.breedId];
+        const cost = this.mergeCosts[breed.rarity];
+        if (this.coins < cost) return;
+
+        this.coins -= cost;
+
+        const newCat = {
+            id: this.nextCatId++,
+            breedId: cat1.breedId,
+            name: cat1.victories >= cat2.victories ? cat1.name : cat2.name,
+            stats: {
+                atk: Math.max(cat1.stats.atk, cat2.stats.atk) + 1 + Math.floor(Math.random() * 3),
+                def: Math.max(cat1.stats.def, cat2.stats.def) + 1 + Math.floor(Math.random() * 3),
+                spd: Math.max(cat1.stats.spd, cat2.stats.spd) + 1 + Math.floor(Math.random() * 3),
+                lck: Math.max(cat1.stats.lck, cat2.stats.lck) + 1 + Math.floor(Math.random() * 3)
+            },
+            victories: cat1.victories + cat2.victories,
+            trainingCooldown: 0,
+            mergeCount: cat1.mergeCount + cat2.mergeCount + 1
+        };
+
+        this.ownedCats = this.ownedCats.filter(c => c.id !== cat1.id && c.id !== cat2.id);
+        this.ownedCats.push(newCat);
+        this.mergeFirst = null;
+        this.mergeSecond = null;
+        this.mergeMode = false;
+        this.saveState();
+        this.updateStatus();
+        this.showMergeResult(newCat);
+    }
+
+    showMergeResult(newCat) {
+        const c = document.getElementById('ch-content');
+        if (!c) return;
+        const breed = this.breeds[newCat.breedId];
+        const cfg = this.rarityConfig[breed.rarity];
+        c.innerHTML = `
+            <div class="ch-merge-result">
+                <div class="ch-merge-result-title">MERGED!</div>
+                <div class="ch-merge-result-emoji">${breed.emoji}</div>
+                <div class="ch-merge-result-name">${newCat.name}</div>
+                <div>
+                    <span class="ch-rarity-badge" style="background: ${cfg.color}">${breed.rarity.toUpperCase()}</span>
+                    <span class="ch-cat-detail-merges">+${newCat.mergeCount} merges</span>
+                </div>
+                <div class="ch-stats-row">
+                    <span>⚔️ ${newCat.stats.atk}</span>
+                    <span>🛡️ ${newCat.stats.def}</span>
+                    <span>💨 ${newCat.stats.spd}</span>
+                    <span>🍀 ${newCat.stats.lck}</span>
+                </div>
+                <div class="ch-cat-detail-victories">🏆 ${newCat.victories} victories</div>
+                <button class="ch-btn ch-btn-primary ch-btn-lg" id="ch-merge-continue">Continue</button>
+            </div>
+        `;
+        document.getElementById('ch-merge-continue')?.addEventListener('click', () => this.renderCats());
     }
 
     renameCat(catId) {
@@ -851,19 +1117,63 @@ class CatHatcher {
             .ch-badge-sm { font-size: 10px; padding: 2px 8px; }
             .ch-stats-row { display: flex; gap: 16px; justify-content: center; margin: 12px 0; font-size: 16px; }
 
-            /* Cats grid */
-            .ch-cats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-            .ch-cat-card { background: var(--surface, #2a2a3e); border: 2px solid; border-radius: 12px; padding: 12px; text-align: center; }
-            .ch-cat-emoji { font-size: 36px; }
+            /* Cats toolbar */
+            .ch-cats-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; position: sticky; top: 0; z-index: 10; background: var(--bg, #1a1a2e); padding: 8px 0; }
+
+            /* Cats compact grid */
+            .ch-cats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
+            .ch-cat-card { background: var(--gradient-card, var(--surface, #2a2a3e)); border: 2px solid transparent; border-radius: 10px; padding: 8px 4px; text-align: center; cursor: pointer; position: relative; transition: transform 0.15s, border-color 0.2s; touch-action: manipulation; }
+            .ch-cat-card:hover { transform: scale(1.05); }
+            .ch-cat-card-expanded { border-color: var(--lavender, #c084fc); }
+            .ch-cat-card-emoji { font-size: 26px; line-height: 1.2; }
+            .ch-cat-card-name { font-weight: bold; font-size: 11px; color: var(--text, #e0e0e0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Nunito', sans-serif; }
+            .ch-cat-card-rarity { font-size: 11px; color: var(--text-secondary, #aaa); display: flex; align-items: center; justify-content: center; gap: 4px; }
+            .ch-rarity-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+            .ch-cat-card-wins { font-size: 10px; color: var(--text-secondary, #aaa); }
+            .ch-cat-merge-badge { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #ffd54f, #ffb300); color: #1a1a2e; font-size: 9px; font-weight: bold; display: flex; align-items: center; justify-content: center; line-height: 1; }
+
+            /* Cat detail panel */
+            .ch-cat-detail { grid-column: 1 / -1; background: var(--gradient-card, var(--surface, #2a2a3e)); border-radius: 12px; padding: 16px; animation: ch-detail-slide 0.25s ease; }
+            @keyframes ch-detail-slide { from { opacity: 0; max-height: 0; } to { opacity: 1; max-height: 400px; } }
+            .ch-cat-detail-header { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+            .ch-cat-detail-emoji { font-size: 40px; }
+            .ch-cat-detail-info { flex: 1; }
+            .ch-cat-detail-breed { font-size: 12px; color: var(--text-secondary, #aaa); margin-left: 4px; }
+            .ch-cat-detail-merges { font-size: 11px; color: #ffd54f; font-weight: bold; margin-left: 4px; }
+            .ch-cat-detail-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+            .ch-detail-stat { display: flex; justify-content: space-between; padding: 4px 8px; background: rgba(0,0,0,0.15); border-radius: 6px; }
+            .ch-detail-stat-label { font-size: 11px; color: var(--text-secondary, #aaa); font-family: 'Fredoka', sans-serif; }
+            .ch-detail-stat-val { font-size: 13px; font-weight: bold; color: var(--text, #e0e0e0); }
+            .ch-cat-detail-victories { font-size: 13px; color: var(--text-secondary, #aaa); margin-bottom: 8px; }
+
+            /* Existing detail helpers */
             .ch-cat-name { font-weight: bold; font-size: 13px; color: var(--text, #e0e0e0); }
-            .ch-cat-name-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 4px 0; }
+            .ch-cat-name-row { display: flex; align-items: center; justify-content: flex-start; gap: 4px; margin: 4px 0; }
             .ch-rename-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px; opacity: 0.5; transition: opacity 0.2s; }
             .ch-rename-btn:hover { opacity: 1; }
             .ch-rename-input { width: 100%; max-width: 140px; padding: 4px 8px; border: 2px solid var(--pink, #f9a8d4); border-radius: 6px; background: var(--surface, #2a2a3e); color: var(--text, #e0e0e0); font-size: 13px; font-weight: bold; text-align: center; outline: none; font-family: 'Nunito', sans-serif; }
-            .ch-cat-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; font-size: 12px; margin: 6px 0; color: var(--text-secondary, #ccc); }
-            .ch-cat-victories { font-size: 12px; color: var(--text-secondary, #aaa); margin-bottom: 6px; }
             .ch-cooldown { color: #ff9800; font-size: 12px; font-weight: bold; }
             .ch-train-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+
+            /* Merge UI */
+            .ch-merge-toggle { padding: 6px 14px; border-radius: 20px; border: 2px solid var(--lavender, #c084fc); background: transparent; color: var(--lavender, #c084fc); font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: 'Nunito', sans-serif; }
+            .ch-merge-toggle-active { background: var(--lavender, #c084fc); color: #1a1a2e; }
+            .ch-cat-card-merge-selected { box-shadow: 0 0 0 3px var(--lavender, #c084fc); }
+            .ch-cat-card-merge-disabled { opacity: 0.3; pointer-events: none; }
+            .ch-merge-preview { grid-column: 1 / -1; background: var(--gradient-card, var(--surface, #2a2a3e)); border: 2px solid var(--lavender, #c084fc); border-radius: 12px; padding: 16px; }
+            .ch-merge-preview-title { font-family: 'Fredoka', sans-serif; font-size: 16px; font-weight: 700; color: var(--lavender, #c084fc); text-align: center; margin-bottom: 10px; }
+            .ch-merge-compare { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 12px; }
+            .ch-merge-compare-cat { text-align: center; font-size: 12px; color: var(--text, #e0e0e0); font-family: 'Nunito', sans-serif; }
+            .ch-merge-compare-plus { font-size: 24px; font-weight: bold; color: var(--lavender, #c084fc); font-family: 'Fredoka', sans-serif; }
+            .ch-merge-stat-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; font-size: 12px; color: var(--text, #e0e0e0); font-family: 'Nunito', sans-serif; }
+            .ch-merge-bonus { color: #4caf50; font-weight: bold; }
+            .ch-merge-cost { text-align: center; font-size: 13px; font-weight: bold; margin: 8px 0; color: var(--text, #e0e0e0); }
+            .ch-merge-cost-warn { color: #f44336; }
+            .ch-merge-buttons { display: flex; gap: 8px; justify-content: center; }
+            .ch-merge-result { text-align: center; padding: 24px; }
+            .ch-merge-result-title { font-family: 'Fredoka', sans-serif; font-size: 36px; font-weight: 700; background: linear-gradient(135deg, var(--lavender, #c084fc), var(--pink, #f9a8d4)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 12px; }
+            .ch-merge-result-emoji { font-size: 80px; animation: ch-pop 0.5s ease; }
+            .ch-merge-result-name { font-family: 'Fredoka', sans-serif; font-size: 20px; font-weight: 600; color: var(--text, #e0e0e0); margin: 8px 0; }
 
             /* Shop */
             .ch-shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
