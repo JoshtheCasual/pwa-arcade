@@ -65,59 +65,48 @@
         
         /* Category styles */
         .category-section {
-            margin-bottom: 24px;
+            margin-bottom: 16px;
         }
         .category-header {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 16px;
-            background: var(--card-bg);
-            border-radius: 16px;
-            margin-bottom: 12px;
+            padding: 8px 4px;
+            background: transparent;
+            border-radius: 0;
+            margin-bottom: 4px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: var(--shadow);
+            border-bottom: 1px solid var(--text-secondary, #ccc);
         }
         .category-header:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
+            opacity: 0.7;
         }
         .category-header.collapsed + .category-games {
             display: none;
         }
         .category-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
+            display: none;
         }
-        .category-icon.strategy { background: linear-gradient(135deg, #667eea, #764ba2); }
-        .category-icon.puzzle { background: linear-gradient(135deg, #f093fb, #f5576c); }
-        .category-icon.word { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-        .category-icon.arcade { background: linear-gradient(135deg, #fa709a, #fee140); }
-        .category-icon.card { background: linear-gradient(135deg, #a8edea, #fed6e3); }
-        .category-icon.classic { background: linear-gradient(135deg, #d299c2, #fef9d7); }
-        .category-icon.party { background: linear-gradient(135deg, #f472b6, #c026d3); }
         .category-title {
             flex: 1;
             font-family: 'Fredoka', sans-serif;
-            font-size: 20px;
+            font-size: 14px;
             font-weight: 600;
-            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary, #6B6B6B);
         }
         .category-count {
-            background: var(--bg-secondary);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            color: var(--text-secondary);
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            font-size: 12px;
+            color: var(--text-secondary, #6B6B6B);
         }
         .category-chevron {
             color: var(--text-secondary);
+            font-size: 18px;
             transition: transform 0.3s ease;
         }
         .category-header.collapsed .category-chevron {
@@ -125,43 +114,51 @@
         }
         .category-games {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
-            padding: 0 8px;
+            grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+            gap: 8px;
+            padding: 0;
         }
         .game-card-mini {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 16px;
+            background: transparent;
+            padding: 8px 4px;
+            min-width: 72px;
+            min-height: 72px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: var(--shadow);
         }
         .game-card-mini:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: var(--shadow-lg);
+            transform: scale(1.08);
         }
         .game-card-mini:active {
-            transform: scale(0.98);
+            transform: scale(0.92);
         }
         .game-card-mini .game-icon {
-            width: 56px;
-            height: 56px;
-            margin: 0 auto 12px;
-            border-radius: 14px;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 6px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .game-card-mini .game-icon .material-icons-round {
-            font-size: 28px;
+            font-size: 30px;
             color: white;
         }
         .game-card-mini h3 {
             font-family: 'Fredoka', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 500;
+            line-height: 1.2;
+            max-width: 72px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
             color: var(--text-primary);
             margin: 0;
         }
@@ -191,7 +188,7 @@
         .game-icon.telephone { background: linear-gradient(135deg, #06b6d4, #0891b2); }
         
         .game-menu-container {
-            padding: 16px;
+            padding: 8px 12px;
             max-width: 800px;
             margin: 0 auto;
         }

@@ -67,8 +67,8 @@ class GameArcade {
         this.updateThemeIcon(savedTheme);
         
         // Load collapsed state - default all collapsed on first visit
-        const defaultCollapsed = ['strategy', 'puzzle', 'word', 'arcade', 'card', 'classic', 'party'];
-        const collapsedCategories = JSON.parse(localStorage.getItem('arcade-collapsed') || JSON.stringify(defaultCollapsed));
+        const defaultCollapsed = [];
+        const collapsedCategories = JSON.parse(localStorage.getItem('arcade-collapsed') || '[]');
         
         document.getElementById('themeBtn').addEventListener('click', () => this.toggleTheme());
         document.getElementById('backBtn').addEventListener('click', () => this.showMenu());

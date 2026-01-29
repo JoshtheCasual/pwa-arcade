@@ -57,6 +57,7 @@ body {
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
+    scroll-behavior: smooth;
 }
 
 /* Floating background blobs */
@@ -95,7 +96,7 @@ body::after {
 }
 
 .app-container {
-    max-width: 500px;
+    max-width: 800px;
     margin: 0 auto;
     min-height: 100vh;
     padding: 16px;
