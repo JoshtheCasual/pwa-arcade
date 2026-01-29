@@ -19,7 +19,8 @@ class Chess {
     }
 
     loadEngine() {
-        if (window.Chess && typeof window.Chess === 'function') {
+        const engine = window['js-chess-engine'];
+        if (engine && engine.Game) {
             this.engineLoaded = true;
             this.reset();
             return;
@@ -28,7 +29,7 @@ class Chess {
         this.statusArea.textContent = 'Loading chess engine...';
         
         const script = document.createElement('script');
-        script.src = 'https://unpkg.com/js-chess-engine/lib/js-chess-engine.js';
+        script.src = 'https://unpkg.com/js-chess-engine@1.0.3/dist/js-chess-engine.js';
         script.onload = () => {
             this.engineLoaded = true;
             this.reset();
@@ -43,7 +44,7 @@ class Chess {
     reset() {
         if (!this.engineLoaded) return;
         
-        this.game = new window.Game();
+        this.game = new (window['js-chess-engine'].Game)();
         this.selectedSquare = null;
         this.validMoves = [];
         this.gameOver = false;
