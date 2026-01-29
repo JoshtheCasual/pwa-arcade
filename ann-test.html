@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ann — Voice Agent Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+        .instructions {
+            background: rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+            text-align: left;
+            line-height: 1.7;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .instructions h2 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: #a78bfa;
+        }
+        .instructions li {
+            margin-left: 20px;
+            margin-bottom: 6px;
+            color: #cbd5e1;
+        }
+        .scenario {
+            background: rgba(167, 139, 250, 0.1);
+            border-left: 3px solid #a78bfa;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 16px;
+            font-size: 0.95rem;
+            color: #c4b5fd;
+        }
+        .scenario strong { color: #a78bfa; }
+        .note {
+            color: #64748b;
+            font-size: 0.85rem;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 Ann</h1>
+        <p class="subtitle">Voice Agent Test — Mr. Wilson's Assistant</p>
+        
+        <div class="instructions">
+            <h2>📋 How to test</h2>
+            <ol>
+                <li>Click the <strong>purple orb</strong> in the bottom-right corner</li>
+                <li>Allow microphone access when prompted</li>
+                <li>Start talking — Ann will respond naturally</li>
+                <li>Have a conversation to test quality and flow</li>
+            </ol>
+            
+            <div class="scenario">
+                <strong>Try this scenario:</strong> Pretend you're a restaurant host. 
+                Ann will call and try to make a reservation for Mr. Wilson. 
+                See how she handles the conversation!
+            </div>
+        </div>
+        
+        <p class="note">Voice: Bella (Professional, Warm) · Powered by ElevenLabs Conversational AI</p>
+    </div>
+
+    <elevenlabs-convai agent-id="agent_1601kg53rb5xf8svysmh5n5epc2r"></elevenlabs-convai>
+    <script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
+</body>
+</html>
