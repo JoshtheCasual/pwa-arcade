@@ -176,6 +176,7 @@
         .game-icon.puzzle2048 { background: linear-gradient(135deg, #EDB879, #F7CA6B); }
         .game-icon.wordle { background: linear-gradient(135deg, #6AAA64, #C9B458); }
         .game-icon.hangman { background: linear-gradient(135deg, #8B5CF6, #EC4899); }
+        .game-icon.cathatcher { background: linear-gradient(135deg, #f9a8d4, #c084fc); }
         .game-icon.snake { background: linear-gradient(135deg, #22C55E, #16A34A); }
         .game-icon.breakout { background: linear-gradient(135deg, #F43F5E, #FB923C); }
         .game-icon.tetris { background: linear-gradient(135deg, #8B5CF6, #3B82F6); }
@@ -332,10 +333,14 @@
                 <div class="category-header" data-category="arcade">
                     <div class="category-icon arcade">🕹️</div>
                     <span class="category-title">Arcade</span>
-                    <span class="category-count">7 games</span>
+                    <span class="category-count">8 games</span>
                     <span class="material-icons-round category-chevron">expand_more</span>
                 </div>
                 <div class="category-games">
+                    <div class="game-card-mini" data-game="cathatcher">
+                        <div class="game-icon cathatcher"><span class="material-icons-round">egg</span></div>
+                        <h3>Cat Hatcher</h3>
+                    </div>
                     <div class="game-card-mini" data-game="snake">
                         <div class="game-icon snake"><span class="material-icons-round">pest_control</span></div>
                         <h3>Snake</h3>
@@ -490,6 +495,7 @@
     <script src="js/games/boggle.js"></script>
     <script src="js/games/nonogram.js"></script>
     <script src="js/games/crossword.js"></script>
+    <script src="js/games/cathatcher.js"></script>
     <script src="js/app.js"></script>
     
     <script>

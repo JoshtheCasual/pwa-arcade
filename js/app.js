@@ -43,6 +43,7 @@ class GameArcade {
         if (typeof FlappyBird !== 'undefined') this.games.flappy = new FlappyBird();
         if (typeof SpaceInvaders !== 'undefined') this.games.spaceinvaders = new SpaceInvaders();
         if (typeof Asteroids !== 'undefined') this.games.asteroids = new Asteroids();
+        if (typeof CatHatcher !== 'undefined') this.games.cathatcher = new CatHatcher();
         
         // Card
         if (typeof Solitaire !== 'undefined') this.games.solitaire = new Solitaire();
